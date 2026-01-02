@@ -1,0 +1,5 @@
+asyncio==4.0.0
+beautifulsoup4==4.13.5
+Django==5.2.8
+httpx==0.27.2
+mercapi @ git+https://github.com/take-kun/mercapi.git@b3aaa4a369413d78f4a16856f1852052fc281d76
