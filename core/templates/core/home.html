@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Japan Online Store Search Watchlist</title>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'core/styles.css' %}">
+
+    </head>
+
+    <body>
+        <div id="main">
+
+            <h1 class="header">Japan Online Store Search Watchlist</h1>
+
+            <!-- SEARCH FORM -->
+            <form class="main-search" method="GET">
+
+                <!-- Keyword Search -->
+                <div class="input-row">
+                    <input type="text" id="product" name="product" value="{{ request.GET.product }}"
+                        placeholder="Search for product">
+                    <button action="{% url 'save_keyword' %}">{% csrf_token %}Save</button>
+                </div>
+
+                <!-- CATEGORY -->
+                <div class="choices-row">
+                    <select name="category" placeholder="Category">
+                        <option value="All" {% if request.GET.category == "All" %}selected{% endif %}>All Categories</option>
+                        <option value="Cars and Motorcycles" {% if request.GET.category == "Cars and Motorcycles" %}selected{% endif %}>Cars and Motorcycles</option>
+                        <option value="Fashion" {% if request.GET.category == "Fashion" %}selected{% endif %}>Fashion</option>
+                        <option value="Baby Products" {% if request.GET.category == "Baby Products" %}selected{% endif %}>Baby Products</option>
+                        <option value="Toys and Games" {% if request.GET.category == "Toys and Games" %}selected{% endif %}>Toys and Games</option>
+                        <option value="Hobby" {% if request.GET.category == "Hobby" %}selected{% endif %}>Hobby</option>
+                        <option value="Tickets" {% if request.GET.category == "Tickets" %}selected{% endif %}>Tickets</option>
+                        <option value="Books" {% if request.GET.category == "Books" %}selected{% endif %}>Books</option>
+                        <option value="Computers" {% if request.GET.category == "Computers" %}selected{% endif %}>Computers</option>
+                        <option value="Audio Video Equipment" {% if request.GET.category == "Audio Video Equipment" %}selected{% endif %}>Audio Video Equipment</option>
+                        <option value="Sports and Leisure" {% if request.GET.category == "Sports and Leisure" %}selected{% endif %}>Sports and Leisure</option>
+                        <option value="Beauty" {% if request.GET.category == "Beauty" %}selected{% endif %}>Beauty</option>
+                        <option value="Food and Drinks" {% if request.GET.category == "Food and Drinks" %}selected{% endif %}>Food and Drinks</option>
+                        <option value="Furniture and Interior" {% if request.GET.category == "Furniture and Interior" %}selected{% endif %}>Furniture and Interior</option>
+                    </select>
+                </div>
+
+                <!-- CONDITION -->
+                <div class="choices-row">
+                    <select name="condition">
+                        <option value="">Condition</option>
+                        <option value="New and used" {% if request.GET.condition == "New and used" %}selected{% endif %}>New & Used</option>
+                        <option value="new" {% if request.GET.condition == "new" %}selected{% endif %}>New Only</option>
+                        <option value="used" {% if request.GET.condition == "used" %}selected{% endif %}>Used Only
+                        </option>
+                    </select>
+                </div>
+
+                <!-- SORT -->
+                <div class="choices-row">
+                    <select name="sort">
+                        <option value="">Sort By</option>
+                        <option value="newest" {% if request.GET.sort == "newest" %}selected{% endif %}>Newest</option>
+                        <option value="time" {% if request.GET.sort == "time" %}selected{% endif %}>Shortest Time (For Auction)</option>
+                        <option value="lowprice" {% if request.GET.sort == "lowprice" %}selected{% endif %}>Lowest Price</option>
+                        <option value="highprice" {% if request.GET.sort == "highprice" %}selected{% endif %}>Highest Price</option>
+                    </select>
+                </div>
+
+                <!-- PRICE LIMIT -->
+                <div class="price-limit" style="display:flex; margin-bottom: 15px; ; gap:20px; justify-content: space-evenly;">
+                    <input type="number" style="margin: 5px;" name="pricemin" {% if pricemin %}value="{{ pricemin }}"{% endif %} min="1" step="1" placeholder="Price Minimum">
+                    <input type="number" style="margin: 5px;" name="pricemax" {% if pricemax %}value="{{ pricemax }}"{% endif %} min="1" step="1" placeholder="Price Maximum">
+                </div>
+
+                <!-- STORE SELECTION -->
+                <div class="store-selector">
+                    <div class="checkbox-wrapper-16">
+                        <label class="checkbox-wrapper">
+                        <input type="checkbox" class="checkbox-input" name="yahoo_enabled" id="yahoo" value="on" {% if yahoo_enabled %}checked{% endif %}>
+                            <span class="checkbox-tile">
+                            <span class="checkbox-icon">
+                                <img src="/static/yahoo-white-icon.svg" alt="Yahoo Auctions">
+                            </span>
+                            <span class="checkbox-label">Yahoo Auctions</span>
+                            </span>
+                        </label>
+                    </div>
+                    <div class="checkbox-wrapper-16">
+                        <label class="checkbox-wrapper">
+                        <input type="checkbox" class="checkbox-input" name="mercari_enabled" id="mercari" value="on" {% if mercari_enabled %}checked{% endif %}>
+                            <span class="checkbox-tile">
+                            <span class="checkbox-icon">
+                                <img src="/static/mercari-logo.svg" alt="Yahoo Auctions">
+                            </span>
+                            <span class="checkbox-label">Mercari</span>
+                            </span>
+                        </label>
+
+                    <!-- ERROR MESSAGE -->
+                    </div>
+                    {% if error %}
+                    <div class="error-message">
+                            {{ error }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <input type="submit" id="searchbutton" value="Search">
+            </form>
+
+            <!-- SAVED KEYWORDS -->
+            <div id="saved-keywords">
+                <h3 class="header">Your Saved Keywords</h3>
+
+                {% if saved_keywords %}
+                {% for kw in saved_keywords %}
+                <span class="keyword-tag" data-keyword="{{ kw.keyword }}" onclick="selectKeyword('{{ kw.keyword|escapejs }}', this)">
+                    {{ kw.keyword }}
+                    <a href="{% url 'delete_keyword' kw.id %}" style="color:red;">×</a>
+                </span>
+                {% endfor %}
+                {% else %}
+                <p style="color:#a0a0a0;">No saved searches yet</p>
+                {% endif %}
+            </div>
+
+            <!-- PRODUCT TABLE -->
+            {% if product_info_list %}
+            <div class="product-grid">
+                {% for product in product_info_list %}
+                <div class="product-card">
+                    <td>
+                        <a href="{{ product.link }}" target="_blank" rel="noopener">
+                            <img class="product-image" src="{{ product.image_url }}" alt="{{ product.name }}">
+                        </a>
+                    </td>
+                    <div class="product-info">
+                        <h3 class="product-title">{{ product.name }}</h3>
+                        <div class="product-footer">
+                            <p class="product-currentprice">Currently {{ product.currentprice }}</p>
+                            <p class="product-buynowprice">{{ product.buynowprice }}</p>
+                            <p class="product-time">{{ product.time }}</p>
+                            {% if product.source == "yahoo" %}
+                                <img class="source-icon" src="/static/yahoo-white-icon.svg" alt="Yahoo Auctions">
+                            {% elif product.source == "mercari" %}
+                                <img class="source-icon" src="/static/mercari-logo.svg" alt="Yahoo Auctions">
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- No items shown at the end of the page -->
+            {% elif page > 1 %}
+                <a href="?product={{ keyword }}&category={{ category }}&condition={{ condition }}&sort={{ sort }}&pricemin={{ pricemin }}&pricemax={{ pricemax}}&yahoo_enabled={{ yahoo_enabled }}&mercari_enabled={{ mercari_enabled }}&page={{ page|add:'-1' }}">
+                    <button class="pagebuttons" style="margin-top:20px; width:200px;">Oops! No more pages left, Go back!</button>
+                </a>
+            {% endif %}
+
+            {% if product_info_list %}
+            <div class="pagination">
+                <!-- Current page -->
+                <div>
+                    <h3 class="header"><span>Page {{ page }}</span></h3>
+                </div>
+                <div class="pagination-header" style="display:flex; margin: 10px; gap:20px; justify-content: space-evenly;">
+                <!-- Previous button (disabled on page 1) -->
+                {% if page > 1 %}
+                <a href="?product={{ keyword }}&category={{ category }}&condition={{ condition }}&sort={{ sort }}&pricemin={{ pricemin }}&pricemax={{ pricemax}}&yahoo_enabled={{ yahoo_enabled }}&yahoo_enabled={% if yahoo_enabled %}on{% endif %}&page={{ page|add:'-1' }}">
+                    <button class="pagebuttons">Previous Page</button>
+                </a>
+                {% endif %}
+
+                <!-- Next button -->
+                <a href="?product={{ keyword }}&category={{ category }}&condition={{ condition }}&sort={{ sort }}&pricemin={{ pricemin }}&pricemax={{ pricemax}}&yahoo_enabled={{ yahoo_enabled }}&mercari_enabled={% if mercari_enabled %}on{% endif %}&page={{ page|add:'1' }}">
+                    <button class="pagebuttons">Next Page</button>
+                </a>
+                </div>
+
+                <!-- Manual Page Input -->
+                <div class="pagination-footer"
+                    style="margin: 7px; height: 100px; width: auto; display: flex; flex-direction: row; justify-content: center; align-items: center;">
+                <form method="GET">
+                    <input type="hidden" name="product" value="{{ keyword }}">
+                    <input type="hidden" name="category" value="{{ category }}">
+                    <input type="hidden" name="condition" value="{{ condition }}">
+                    <input type="hidden" name="sort" value="{{ sort }}">
+                    <input type="hidden" name="pricemin" value="{{ pricemin }}">
+                    <input type="hidden" name="pricemax" value="{{ pricemax }}">
+                    <input type="hidden" name="yahoo_enabled" value="{{ yahoo_enabled }}">
+                    <input type="hidden" name="mercari_enabled" value="{{ mercari_enabled }}">
+
+                    <div class="page-selector">
+                        <input type="number" name="page" min="1" max="100" step="1" placeholder="Input Page Number">
+                    </div>
+                    <button class="pagebuttons" type="submit" style="width:100px; margin-top: 20px;">Skip to Page</button>
+                </form>
+                </div>
+            </div>
+            {% endif %}
+            </form>
+        </div>
+        <script>
+
+            // Fill the search bar by clicking the saved word
+            function selectKeyword(keyword, element) {
+                const input = document.getElementById('product');
+                if (!input) return;
+                input.value = keyword;
+                }
+
+            /*
+            Helpers for sessionStorage handling of searched keywords list.
+            We keep an array 'searchedKeywords' in sessionStorage.
+            */
+            function getSearchedList() {
+                try {
+                    const raw = sessionStorage.getItem('searchedKeywords');
+                    return raw ? JSON.parse(raw) : [];
+                    } catch (e) {
+                        return [];
+                    }
+                }
+
+            function saveSearchedList(list) {
+                sessionStorage.setItem('searchedKeywords', JSON.stringify(list));
+                }
+
+            /*
+            markSearched(keyword)
+            - Add the keyword to the session list and mark UI tag(s) with .searched
+            */
+            function markSearched(keyword) {
+                if (!keyword) return;
+                    const normalized = keyword.trim();
+                if (!normalized) return;
+
+                // persist to sessionStorage
+                const list = getSearchedList();
+                if (!list.includes(normalized)) {
+                    list.push(normalized);
+                    saveSearchedList(list);
+                }
+
+            // highlight matching tags
+            document.querySelectorAll('.keyword-tag').forEach(tag => {
+                if (tag.dataset.keyword && tag.dataset.keyword.trim() === normalized) {
+                tag.classList.add('searched');
+                }
+                });
+            }
+
+            /*
+            restoreHighlightsOnLoad()
+            - When the page loads, read sessionStorage and apply .searched to matching tags
+            - Also, if this page load is a result of a search (request.GET.product),
+                we call markSearched to record it in sessionStorage.
+            */
+            document.addEventListener('DOMContentLoaded', () => {
+            // 1) restore previously searched keywords from sessionStorage
+            const searchedList = getSearchedList();
+            if (searchedList.length) {
+                document.querySelectorAll('.keyword-tag').forEach(tag => {
+                const k = tag.dataset.keyword ? tag.dataset.keyword.trim() : '';
+                if (k && searchedList.includes(k)) {
+                    tag.classList.add('searched');
+                }
+                });
+            }
+
+            // 2) If this page was just loaded with a search (server-side), mark it now.
+            //    Django will render request.GET.product into this JS template string.
+            const justSearched = "{{ request.GET.product|default:''|escapejs }}".trim();
+                if (justSearched) {
+                    markSearched(justSearched);
+                }
+            });
+        </script>
+    </body>
+</html>
