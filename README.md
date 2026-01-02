@@ -4,6 +4,8 @@
 
 # What is this project?
 
+Final Project for Harvard CS50x: Introduction to Computer Science 2025
+
 As an avid buyer of items from Japan, I constantly juggle between the online stores when searching for what I want. This project combines listings from Yahoo Auctions Japan and Mercari Japan into a single page. It also has the ability to store searched keywords and apply multiple search conditions for synchronous store searching.
 
 # Project Overview
