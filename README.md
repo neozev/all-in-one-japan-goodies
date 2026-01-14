@@ -12,7 +12,6 @@ As an avid buyer of items from Japan, I constantly juggle between the online sto
 
 Install the necessary packages for the program to work.
 
-- pip
   ```sh
   pip install -r requirements.txt
   ```
@@ -21,7 +20,6 @@ Install the necessary packages for the program to work.
 
 Locate the root directory of the folder and launch **manage.py**. Click the IP link of the development server.
 
-- pip
   ```sh
   python manage.py runserver
   ```
